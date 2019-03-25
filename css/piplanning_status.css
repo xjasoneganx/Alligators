@@ -65,26 +65,7 @@ body {
 
 input[type=text] {
   width: 30em;
-  padding: 8px 8px;
-  margin: 8px 0;
-  box-sizing: border-box;
-  border: 2px solid;
-  border-radius: 10px;
   font-size: 1em;
-}
-
-button {
-	text-align: center;
-  width: 10em;
-  padding: 8px 8px;
-  margin: 8px 0;
-  box-sizing: border-box;
-  border: 2px solid;
-  border-radius: 10px;
-  background-color: cyan;
-	font-style: bold;
-  font-size: 1em;
-  cursor: pointer;
 }
 
 #output_table a {

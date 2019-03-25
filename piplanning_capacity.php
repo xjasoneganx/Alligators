@@ -2,13 +2,12 @@
 
 $nav_selected = "PIPLANNING";
 $left_buttons = "YES"; 
-$left_selected = "CALCULATE";
+$left_selected = "CAPACITY";
 
 include("./nav.php");
 global $db;
 
 date_default_timezone_set('America/Chicago');
-
 
 ?>
 
@@ -16,7 +15,7 @@ date_default_timezone_set('America/Chicago');
 
 <h2>Capacity Calculator</h2>
 
-<table id="table_header">
+<table id="table_header1">
 	<tr>
 		<td style="text-align:right"><label>Agile Release Train:</label></td><td><div id="artSelectorHTML"></div></td>
 		<td rowspan="3"><div id="cap_total">Capacity Total Goes Here.</div></td>
@@ -81,9 +80,26 @@ if ($result->num_rows > 0) {
 <script>
 // Creates the drop-down for the ART selection
 
+function getFormVars() {
+  var formVars = getCookie("formVars");
+  if (formVars != '') {
+    return formVars;
+	} else {
+		return '';
+	}
+}
+
 function selectART() {
+	if ( getFormVars() != '' ) {
+		var defaults = JSON.parse( getFormVars() );
+		var defaultArtID = defaults.chosenART;
+	} else {
+	  var defaultArtID = JSON.parse('<?php echo json_encode($defaultArtID,JSON_HEX_TAG|JSON_HEX_APOS); ?>');
+	}
+	
+	
+	
   var ARTresults = JSON.parse('<?php echo json_encode($ARTresults,JSON_HEX_TAG|JSON_HEX_APOS); ?>');
-  var defaultArtID = JSON.parse('<?php echo json_encode($defaultArtID,JSON_HEX_TAG|JSON_HEX_APOS); ?>');
   var artSelectorHTML = '';
   artSelectorHTML += '<select id="artList" name="artList" onchange="selectAT()">\n';
   ARTresults.forEach(function(element) {
@@ -100,6 +116,10 @@ function selectART() {
 // Creates the drop-down for the AT selection
 
 function selectAT() {
+	if ( getFormVars() != '' ) {
+		var defaults = JSON.parse( getFormVars() );
+		var defaultAtID = defaults.chosenAT;
+		}
   var ATresults = JSON.parse('<?php echo json_encode($ATresults,JSON_HEX_TAG|JSON_HEX_APOS); ?>');
   var atSelectorHTML = '';
   var artTeamID = document.getElementById("artList").value;
@@ -107,7 +127,11 @@ function selectAT() {
   atSelectorHTML += '<select id="atList" name="atList">\n';
   ATresults.forEach(function(element) {
     if (element.parent_name == artTeamID) {
-      atSelectorHTML += '<option value="' + element.team_id.trim() + '">' + element.team_name.trim() + '</option>\n';
+    	if (element.team_id.trim() == defaultAtID) {
+    	  atSelectorHTML += '<option value="' + element.team_id.trim() + '" selected="selected">' + element.team_name.trim() + '</option>\n';
+    	} else { 
+      	atSelectorHTML += '<option value="' + element.team_id.trim() + '">' + element.team_name.trim() + '</option>\n';
+      }
     }
   });
   atSelectorHTML += '</select>\n';
@@ -119,9 +143,33 @@ function formVars() {
   						chosenAT: document.getElementById("atList").value,
   						chosenPID: document.getElementById("pidList").value }; 
   var jsonStr = JSON.stringify(obj);
-	document.cookie = "formVars=" + jsonStr;
+	setCookie('formVars', jsonStr, 365);
 }
 
+// COOKIES.............
+
+function getCookie(cname) {
+  var name = cname + "=";
+  var decodedCookie = decodeURIComponent(document.cookie);
+  var ca = decodedCookie.split(';');
+  for(var i = 0; i <ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
+function setCookie(cname, cvalue, exdays) {
+  var d = new Date();
+  d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+  var expires = "expires="+d.toUTCString();
+  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
 </script> 
  
 	</tr>
@@ -134,17 +182,24 @@ function formVars() {
 // determined by the system time of the SQL server. The PI_id chosen will
 // have its end date equal to or greater than the current date.
 
-$sql = "SELECT PI_id,MIN(end_date)
-				FROM `cadence`
-				WHERE end_date >= CURDATE()
-				GROUP BY PI_id
-				LIMIT 1;";
+$cookie_name = 'formVars';
+if(isset($_COOKIE[$cookie_name])) {
+	$formVars = $_COOKIE[$cookie_name];
+  $selection = json_decode($formVars, true);
+  $DefaultPiid = $selection['chosenPID'];
+  } else {
+	$sql = "SELECT PI_id,MIN(end_date)
+					FROM `cadence`
+					WHERE end_date >= CURDATE()
+					GROUP BY PI_id
+					LIMIT 1;";
 
-$result = $db->query($sql);
+	$result = $db->query($sql);
 
-if ($result->num_rows > 0) {
-	while ($row = $result->fetch_assoc()) {
-		$DefaultPiid = $row["PI_id"];
+	if ($result->num_rows > 0) {
+		while ($row = $result->fetch_assoc()) {
+			$DefaultPiid = $row["PI_id"];
+		}
 	}
 }
 
@@ -174,6 +229,7 @@ if ($result->num_rows > 0) {
 		</select>
 		</td>
 	</tr>
+	<tr><td></td><td><input type="submit" name="submit" value="Generate"></td></tr>
 </table>
 
 <?php
@@ -188,7 +244,7 @@ function test_input($data) {
 }
 ?>
 
-<input type="submit" name="submit" value="Generate">  
+
 </form>
 
 <div id="iterationTables"></div>
@@ -214,28 +270,57 @@ echo 'The chosen ART is ' . $selection['chosenART'] . '<br />';
 echo 'The chosen AT is ' . $selection['chosenAT'] . '<br />';
 echo 'The chosen PID is ' . $selection['chosenPID'] . '<br />';
 echo '<br />';
-echo 'Here you have it... The variables on the form above that is set by JavaScript
-client-side is getting passed by cookie containing a JSON string to PHP, which
-reloads this same page to display the new content here... but because the page now reloads,
-the dang form above gets reset and will not necessarily (and most likely NOT) display the same
-data as what was selected before the page reload. But this content here will reflect
-the selections... So the solution is probably going to have JS read the same cookie values
-as its building the form.';
+echo 'The dropdowns above now maintain their values even after a page reload is invoked
+by the Generate button. This was accomplished by using the same cookie that is created
+by Javascript and passed to PHP. If the cookie exists, this same cookie populates
+the dropdown form values on a page load by Javascript. This cookie is persistent this page will always
+show the last options above that were selected, which disregards the OTHER cookie (in the Help section).
+But if this JSON cookie does NOT exist, then the other cookie will be honored.<br />';
+echo '<br />';
+echo 'Now that this real pain in the butt has been ironed out, this space still needs table generation.';
+
  		
 // *************************************************************************************
 // WHERE ALL THE TABLE DATA GETS GENERATED
 // *************************************************************************************	
 		
   } else {
-    // Display the Form and the Submit Button
+    // Display the Form and the Submit Button AND NOTHING ELSE (Leave this area alone)
 }  
+
+$sql = "SELECT iteration_id
+			FROM `cadence`
+			WHERE PI_id = '" . $selection['chosenPID'] . "';";
+			
+			
+$result = $db->query($sql);
+
+if ($result->num_rows > 0) {	
+	while ($row = $result->fetch_assoc()) {
+		 $ATresults[] = $row;
+	}
+}
+
+$fdjfdj = 0;
+foreach ($ATresults as $element) {
+	echo $element . '<br / >';
+	$fdjfdj++;
+}
+
+
 ?>
+
+
 
 
 <script>
 document.addEventListener("DOMContentLoaded", selectART);
 document.addEventListener("DOMContentLoaded", selectAT);
-document.getElementById("generate").addEventListener("click", generate);
+/* 
+window.onbeforeunload = function() {
+  document.cookie = "formVars=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+};
+ */
 </script>
 
 <?php
