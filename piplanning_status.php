@@ -159,7 +159,7 @@ while($line = mysqli_fetch_assoc($query2)){
 			<td>
 			</td>
 			<td>
-				<button id="generate" type="button">Generate (JS)</button>
+				<!-- <button id="generate" type="button">Generate (JS)</button> -->
 				<button type="submit">Generate (PHP)</button>
 			</td>
 		</tr>

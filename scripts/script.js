@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", selectART);
 document.addEventListener("DOMContentLoaded", changeATs);
 document.addEventListener("DOMContentLoaded", generate);
 
+
 /* Execute the generate() function when the "Generate" button is clicked */
 
 document.getElementById("generate").addEventListener("click", generate);
@@ -37,6 +38,7 @@ function changeATs() {
   }
 });
 document.getElementById("namesOfTeams").value = childrenATs.join(', ');	
+generate();
 }
 
 function generate() {
