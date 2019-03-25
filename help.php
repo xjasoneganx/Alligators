@@ -17,4 +17,4 @@
 
 <?php include("./footer.php"); ?>
 
-ANOTHER TEST
+THIS IS A TEST
