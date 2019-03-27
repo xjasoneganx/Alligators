@@ -16,5 +16,3 @@
   
 
 <?php include("./footer.php"); ?>
-
-ANOTHER TEST

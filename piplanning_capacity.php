@@ -263,21 +263,48 @@ if(isset($_POST['submit'])) {
 // WHERE ALL THE TABLE DATA GETS GENERATED
 // *************************************************************************************	
 
-echo '<br />';
-echo 'This is where PHP will build tables... Here are the variables passed by cookie:<br />';
-echo '<br />';
-echo 'The chosen ART is ' . $selection['chosenART'] . '<br />';
-echo 'The chosen AT is ' . $selection['chosenAT'] . '<br />';
-echo 'The chosen PID is ' . $selection['chosenPID'] . '<br />';
-echo '<br />';
-echo 'The dropdowns above now maintain their values even after a page reload is invoked
-by the Generate button. This was accomplished by using the same cookie that is created
-by Javascript and passed to PHP. If the cookie exists, this same cookie populates
-the dropdown form values on a page load by Javascript. This cookie is persistent this page will always
-show the last options above that were selected, which disregards the OTHER cookie (in the Help section).
-But if this JSON cookie does NOT exist, then the other cookie will be honored.<br />';
-echo '<br />';
-echo 'Now that this real pain in the butt has been ironed out, this space still needs table generation.';
+$sql = "SELECT iteration_id
+			FROM `cadence`
+			WHERE PI_id = '" . $selection['chosenPID'] . "';";
+
+$result = $db->query($sql);
+
+if ($result->num_rows > 0) {	
+	while ($row = $result->fetch_assoc()) {
+		 $ATiterations[] = $row['iteration_id'];
+	}
+}
+
+foreach ($ATiterations as $element) {
+
+echo <<< EOT
+<table border="1">
+	<tr>
+		<td>Iteration: $element</td>
+		<td>Iteration Capacity</td>
+		<td><div id="iteration_capacity"></div></td>
+	</tr>
+</table>
+<table border="1">
+			<tr><td>Last Name</td><td>First Name</td><td>Role</td><td>% Velocity Available</td><td>Days Off</td><td>Story Points</td></tr>
+			<tr><td>Last Name</td><td>First Name</td><td>Role</td><td>% Velocity Available</td><td>Days Off</td><td>Story Points</td></tr>
+			<tr><td>Last Name</td><td>First Name</td><td>Role</td><td>% Velocity Available</td><td>Days Off</td><td>Story Points</td></tr>
+			<tr><td>Last Name</td><td>First Name</td><td>Role</td><td>% Velocity Available</td><td>Days Off</td><td>Story Points</td></tr>
+			<tr><td>Last Name</td><td>First Name</td><td>Role</td><td>% Velocity Available</td><td>Days Off</td><td>Story Points</td></tr>
+			<tr><td>Last Name</td><td>First Name</td><td>Role</td><td>% Velocity Available</td><td>Days Off</td><td>Story Points</td></tr>
+			<tr><td>Last Name</td><td>First Name</td><td>Role</td><td>% Velocity Available</td><td>Days Off</td><td>Story Points</td></tr>
+</table>
+EOT;
+
+}
+
+
+
+
+
+
+
+
 
  		
 // *************************************************************************************
@@ -288,24 +315,8 @@ echo 'Now that this real pain in the butt has been ironed out, this space still 
     // Display the Form and the Submit Button AND NOTHING ELSE (Leave this area alone)
 }  
 
-$sql = "SELECT iteration_id
-			FROM `cadence`
-			WHERE PI_id = '" . $selection['chosenPID'] . "';";
-			
-			
-$result = $db->query($sql);
 
-if ($result->num_rows > 0) {	
-	while ($row = $result->fetch_assoc()) {
-		 $ATresults[] = $row;
-	}
-}
 
-$fdjfdj = 0;
-foreach ($ATresults as $element) {
-	echo $element . '<br / >';
-	$fdjfdj++;
-}
 
 
 ?>
