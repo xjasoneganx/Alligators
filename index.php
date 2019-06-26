@@ -27,3 +27,4 @@
 </map>
 
 <?php include("./footer.php"); ?>
+test
